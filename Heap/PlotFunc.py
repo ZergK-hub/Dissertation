@@ -9,7 +9,21 @@ class PlotBaseFunc:
     def __init__(self):
         pass
     
-    def PlotIso():# отображать изолинии функции F=F(x,y)
+    def PlotIso(self,x,y,f):# отображать изолинии функции F=F(x,y)
+
+        X, Y = np.meshgrid(x, y)
+
+        # Calculate Z values
+        Z = f(X,Y)
+
+        # Plot isolines
+        fig, ax = plt.subplots(figsize=(10, 8))
+        contour = ax.contour(X, Y, Z, cmap=cm.viridis, levels=100)
+        ax.clabel(contour, inline=True, fontsize=8)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_title('Isolines of Z(x,y)')
+        plt.show()
         pass
 
     def PlotSurface(self,x,y,f): # отображать поверхность F=F(x,y)
@@ -29,7 +43,7 @@ class PlotBaseFunc:
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('F(x,y)')
-        ax.set_title('Surface of F(x,y) = F1(x) * F2(y)')
+        ax.set_title('Surface of F(x,y)')
         plt.show()
         pass
 
