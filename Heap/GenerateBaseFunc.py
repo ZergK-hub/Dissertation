@@ -50,11 +50,12 @@ class BFlist:
     
     def F3(self,m,n):
 
-        return lambda x,y:self.func1(x,m)*self.func2(x,m)*self.n_m(y,n)
+        #return lambda x,y:self.func1(x,m)*self.func2(x,m)*self.n_m(y,n)
+        return lambda x,y:self.func1(x,m)*self.func1(x,m)*self.n_m(y,n)
     
     def F(self,a,m,n):
 
-        return lambda x,y:self.tan_h(x,a)*self.n_m(y,m)#*self.func1(x,n)*self.func2(x,n)
+        return lambda x,y:80*self.tan_h(x,a)*self.n_m(y,m)*self.func1(x,n)*self.func2(x,n)
 
 class GenFromBF:
     '''Сгенерировать функцию на основе базовых'''
@@ -84,12 +85,13 @@ def main():
     x=np.linspace(0,1, num=100)
     f1=L.F1(x,2)
     f2=L.F2(x,2)
+    f3=L.F1(x,6)
     p1=PlotBaseFunc()
     
     p1.Plot1D(x,f1)
-    p1.PlotList1D([x,x],[f1,f2])
+    p1.PlotList1D([x,x,x],[f1,f2,f3])
     Param=[3,2,4]
-    Mult=[1,-1,1]
+    Mult=[10,-3,1]
     sum=GenFromBF([L.F1(x,m) for m in Param],Mult).FSum1D()
    
     p1.Plot1D(x,sum)
@@ -100,7 +102,7 @@ def main():
 
     x=np.linspace(-1,1, num=100)
 
-    ftanh=L.tan_h(x,0.3)
+    ftanh=L.tan_h(x,0.7)
 
     p1.Plot1D(x,ftanh)
 
@@ -108,12 +110,12 @@ def main():
     p1.PlotSurface(x,y,f3)
 
     VF=[
-        L.F3(4,12),
-        L.F3(3,2),
-        L.F3(5,6)
+        L.F3(17,12),
+        L.F3(2,5),
+        L.F3(15,6)
        ]
 
-    Mult=[1,1,1]
+    Mult=[1,0.1,0.5]
 
     S=GenFromBF(VF,Mult).FSum2D()
 
@@ -121,7 +123,7 @@ def main():
 
     p1.PlotIso(x,y,S)
 
-    f=L.F(0.3,3,2)
+    f=L.F(0.7,9,2)
 
     p1.PlotSurface(x,y,f)
 

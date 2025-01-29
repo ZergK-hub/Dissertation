@@ -30,7 +30,7 @@ real eta=k/(mu*betaast);//piesoconductivity coefficient
 real dt=0.5*Daytos;//time step [sec]
 real h=20;//reservoir thickness [m]
 
-real Pzab=70E5;//downhole pressure in 1 month [Pa]
+real Pzab=300E5;//downhole pressure in 1 month [Pa]
 int  NN=20;
 real tmax=30.5*Daytos; //max time of production [sec]
 real t; // time variable
@@ -117,6 +117,7 @@ int2d(Th)(betaast*pCur*q/dt)
 +int2d(Th)(kDivMu*(dx(q)*dx(pCur)+dy(q)*dy(pCur)))
 
 +on(1,2,3,4,pCur=p0)
+//+on(1, pCur=Pzab)
 +on(5,pCur=Pzab)
 
 ;
@@ -141,11 +142,7 @@ int count=1;
   
  while (t<tmax+dt)
  {
-	 
-	 
-	  
-	  
-	  
+  
 	 flow;
 	 
 	 pSave=pCur;
@@ -153,20 +150,18 @@ int count=1;
 	 Vout=pSave[];
 	 
 	 plot(pSave, wait=1, fill=1, value=1);
-	 
 	 {
-			
-			ofstream f0save("./Results/Ex3/Field/PressureOutVector"+count+".txt");
+			ofstream f0save("./Results/PressureOutVector"+count+".txt");
 			for (int i=0;i<mAux*nAux;i++)
 			{
 				f0save <<  i << "\t" <<Vout[i]<<endl;
 				
 			}
 	 }
-	 
+ 
 	 {
 			
-			ofstream f1save("./Results/Ex3/Section/PressureSection"+count+".txt");
+			ofstream f1save("./Results/PressureSection"+count+".txt");
 			for (int i=0;i<NumPointstoPlot;i++)
 			{
 				f1save <<  xxx[i] << "\t" <<pCur(250,xxx[i])<<endl;
