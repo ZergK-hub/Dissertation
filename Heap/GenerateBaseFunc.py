@@ -54,7 +54,7 @@ class BFlist:
     
     def F(self,a,m,n):
 
-        return lambda x,y:self.tan_h(x,a)*self.n_m(y,m)*self.func1(x,n)*self.func2(x,n)
+        return lambda x,y:self.tan_h(x,a)*self.n_m(y,m)#*self.func1(x,n)*self.func2(x,n)
 
 class GenFromBF:
     '''Сгенерировать функцию на основе базовых'''
@@ -121,7 +121,7 @@ def main():
 
     p1.PlotIso(x,y,S)
 
-    f=L.F(0.3,12,2)
+    f=L.F(0.3,3,2)
 
     p1.PlotSurface(x,y,f)
 
