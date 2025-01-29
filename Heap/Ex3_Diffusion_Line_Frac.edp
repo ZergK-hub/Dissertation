@@ -1,0 +1,183 @@
+/*
+	Курс: Механика в разработке
+    Class: Mechanics in Field Development
+
+    Упражнение 3: Приток к вертикальной трещине
+
+    Exercise 3: Flow to vertical hydraulic fracture
+
+    автор: Калинин С.А.
+    author: Kalinin S.A.
+
+
+*/
+
+real Daytos=86400;// day to sec
+real mDtom2  =  9.8692329723E-16;//мД в м2
+real T2KG=1000;//tonn to kg conversion coefficient
+
+
+real p0=250E5;//reservoir pressure [Pa]
+real k=0.1*mDtom2; //rock permeability [m2]
+real fi=0.15;//porosity
+real mu=0.2E-3;//viscosity [Pa*sec]
+real dens=830;//kg/m3 fluid density
+real K=1.2E9;//volumetric elastic modulus [Pa]
+real betaf=1/K;//fluid compressibility [Pa-1]
+real betas=1E-10;//rock (skeleton) compressibility [Pa-1]
+real betaast =fi*betaf+betas;//coefficient of elastic capacity (Basniev et al, Podzemnaya Gidromekhanika, p.193)
+real eta=k/(mu*betaast);//piesoconductivity coefficient
+real dt=0.5*Daytos;//time step [sec]
+real h=20;//reservoir thickness [m]
+
+real Pzab=70E5;//downhole pressure in 1 month [Pa]
+int  NN=20;
+real tmax=30.5*Daytos; //max time of production [sec]
+real t; // time variable
+
+real Lf=100;//initial fracture length, which changes with time
+
+
+
+
+
+mesh Th;
+
+
+//                  xb yb xt  yt
+real [int] Corners=[0, 0, 500,310];//нижний левый и верхний правый углы прямоугольника
+
+real X0=Corners[0];
+real XL=Corners[2];
+real Y0=Corners[1];
+real YL=Corners[3];
+
+
+border Bot(t=0,1){x=(XL)*t; y =0.0; label=1;};
+
+border Right(t=0,1){x=XL;y=YL*t;label=2;};
+
+border Top(t=0,1){x=XL*(1-t); y=YL; label=3;};
+
+border Left(t=0,1){x=0.0;y=YL*(1-t); label=4;}; 
+
+border Center(t=0,1){x=(0.5*(X0+XL)-0.5*Lf)*(1-t)+(0.5*(X0+XL)+0.5*Lf)*t; y=0.5*YL; label=5;};
+
+Th=buildmesh(Bot(40)+Right(40)+Top(40)+Left(40)+Center(50));
+	
+	
+// Определение Г.У.:
+
+//---------------Постоянный расход задан на границе с названием Center-------------
+//
+//                                  
+//                                   
+//                                  Top
+//                       ---------------------------
+//                       |                         |
+//                       |                         |
+//                  Left |         Center          | Right
+//                       |      -----------        |
+//                       |                         |
+//                       |                         |
+//                       |                         |
+//                       ---------------------------
+//                                  Bot
+//
+//----------------------------------------------------------------------------------
+	
+	
+plot(Th);
+
+int mAux=200,nAux=200;
+
+mesh Th1=square(mAux,nAux,[X0+(XL-X0)*x, Y0+(YL-Y0)*y]);
+	
+fespace Wh(Th1,P1);
+
+Wh pSave;
+
+	// Fespace
+fespace Vh(Th, P1);	 //P1 elements on global triangulation Th 
+Vh pPrev;	 // pressure field on the previous time step
+Vh pCur;	 //pressure field on the current time step
+Vh pPrevFix;
+Vh q;	 // weighting test function on pressure 
+
+real kDivMu=k/mu;	 // permeability divided by viscosity 
+
+
+
+
+	
+problem flow(pCur,q)=
+int2d(Th)(betaast*pCur*q/dt)
+-int2d(Th)(betaast*pPrev*q/dt)
+
++int2d(Th)(kDivMu*(dx(q)*dx(pCur)+dy(q)*dy(pCur)))
+
++on(1,2,3,4,pCur=p0)
++on(5,pCur=Pzab)
+
+;
+  
+ 
+  t=0;
+  pPrev=p0;
+  
+  int NumPointstoPlot=500;//number of points along contact line
+
+  real [int] xxx(NumPointstoPlot); //points along contact line
+  real [int] SS(NumPointstoPlot); // SyEff - effective stress along fracture
+
+for (int i=0; i<NumPointstoPlot; i++)
+	{
+		xxx[i]=i*(YL)/(NumPointstoPlot-1);
+	}
+
+real [int] Vout(mAux*nAux);
+
+int count=1;
+  
+ while (t<tmax+dt)
+ {
+	 
+	 
+	  
+	  
+	  
+	 flow;
+	 
+	 pSave=pCur;
+	 
+	 Vout=pSave[];
+	 
+	 plot(pSave, wait=1, fill=1, value=1);
+	 
+	 {
+			
+			ofstream f0save("./Results/Ex3/Field/PressureOutVector"+count+".txt");
+			for (int i=0;i<mAux*nAux;i++)
+			{
+				f0save <<  i << "\t" <<Vout[i]<<endl;
+				
+			}
+	 }
+	 
+	 {
+			
+			ofstream f1save("./Results/Ex3/Section/PressureSection"+count+".txt");
+			for (int i=0;i<NumPointstoPlot;i++)
+			{
+				f1save <<  xxx[i] << "\t" <<pCur(250,xxx[i])<<endl;
+				
+			}
+	 }
+	 
+	 
+	 plot(pCur, wait=0, fill=true, value=1);
+	 
+	 pPrev=pCur;   //pressure initialization for the next time step
+	 count=count+1;
+	 t=t+dt;
+ }
