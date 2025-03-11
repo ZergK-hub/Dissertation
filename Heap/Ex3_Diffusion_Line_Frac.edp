@@ -45,25 +45,29 @@ mesh Th;
 
 
 //                  xb yb xt  yt
-real [int] Corners=[0, 0, 500,310];//нижний левый и верхний правый углы прямоугольника
+real [int] Corners=[-500, 0, 500,1000];//нижний левый и верхний правый углы прямоугольника
 
 real X0=Corners[0];
 real XL=Corners[2];
 real Y0=Corners[1];
 real YL=Corners[3];
 
+int bot1=1;
 
-border Bot(t=0,1){x=(XL)*t; y =0.0; label=1;};
+int BRight=2;
 
-border Right(t=0,1){x=XL;y=YL*t;label=2;};
 
-border Top(t=0,1){x=XL*(1-t); y=YL; label=3;};
+border Bot(t=0,1){x=X0*(1-t)+(XL)*t; y =0.0; label=bot1;};
 
-border Left(t=0,1){x=0.0;y=YL*(1-t); label=4;}; 
+border Right(t=0,1){x=XL;y=Y0*(1-t)+YL*t;label=BRight;};
 
-border Center(t=0,1){x=(0.5*(X0+XL)-0.5*Lf)*(1-t)+(0.5*(X0+XL)+0.5*Lf)*t; y=0.5*YL; label=5;};
+border Top(t=0,1){x=X0*t+XL*(1-t); y=YL; label=3;};
 
-Th=buildmesh(Bot(40)+Right(40)+Top(40)+Left(40)+Center(50));
+border Left(t=0,1){x=X0;y=Y0*t+YL*(1-t); label=4;}; 
+
+//border Center(t=0,1){x=(0.5*(X0+XL)-0.5*Lf)*(1-t)+(0.5*(X0+XL)+0.5*Lf)*t; y=0.5*YL; label=5;};
+
+Th=buildmesh(Bot(40)+Right(40)+Top(40)+Left(40));//+Center(50));
 	
 	
 // Определение Г.У.:
@@ -92,10 +96,35 @@ plot(Th);
 int mAux=200,nAux=200;
 
 mesh Th1=square(mAux,nAux,[X0+(XL-X0)*x, Y0+(YL-Y0)*y]);
+
+func pv=(p0+(Pzab-p0)*0.5*(1-tanh(10*(x-100))*tanh(10*(x+100))));
+
+func int mylab(int ll)
+{
+
+if (abs(x)<=100)
+{
+	if (y==0)
+	{
+		return ll;
+	}
+	
+}
+
+if (abs(x)>100)
+{
+	if (y==0)
+	{
+		return 5;
+	}
+}
+}
+
+Th=change(Th,flabel=mylab(bot1));
 	
 fespace Wh(Th1,P1);
 
-Wh pSave;
+Wh pSave;//, ptest=(p0+(Pzab-p0)*pv);
 
 	// Fespace
 fespace Vh(Th, P1);	 //P1 elements on global triangulation Th 
@@ -116,9 +145,9 @@ int2d(Th)(betaast*pCur*q/dt)
 
 +int2d(Th)(kDivMu*(dx(q)*dx(pCur)+dy(q)*dy(pCur)))
 
-+on(1,2,3,4,pCur=p0)
-//+on(1, pCur=Pzab)
-+on(5,pCur=Pzab)
++on(2,3,4,pCur=p0)
++on(bot1, pCur=pv)
+//+on(5,pCur=Pzab)
 
 ;
   
@@ -155,6 +184,8 @@ int count=1;
 			for (int i=0;i<mAux*nAux;i++)
 			{
 				f0save <<  i << "\t" <<Vout[i]<<endl;
+
+				
 				
 			}
 	 }
